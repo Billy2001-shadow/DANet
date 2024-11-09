@@ -7,7 +7,8 @@ class Efficientnet(nn.Module):
 
         basemodel_name='tf_efficientnet_b0_ap'
         print('Loading base model ()...'.format(basemodel_name), end='')
-        basemodel=torch.hub.load('rwightman/gen-efficientnet-pytorch', basemodel_name, pretrained=True)
+        # basemodel=torch.hub.load('rwightman/gen-efficientnet-pytorch', basemodel_name, pretrained=True)
+        basemodel=torch.hub.load('/home/chenwu/DANet/pretrained/hub/rwightman_gen-efficientnet-pytorch_master', basemodel_name, pretrained=True,source='local')
         print('Done.')
         print('Removing last two layers (global_pool & classifier).')
         basemodel.conv_head=nn.Identity()
