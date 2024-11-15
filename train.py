@@ -11,12 +11,13 @@ from models.net import DANet
 from dataloader import dataloader
 from models.loss import *
 PROJECT = "MDE-DANet"
-
+os.environ['CUDA_VISIBLE_DEVICES']='1'
 args = get_args('train')
 args.name=f"{args.backbone}+bs={args.batch_size}+seed={args.seed}"
 args.checkpoint_dir=os.path.join("./results",args.name)
 makedir(args.checkpoint_dir)
 
+# 确保训练过程的随机性可控，实验结果具有可复现性。
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed(args.seed)
 torch.cuda.manual_seed_all(args.seed)
@@ -28,16 +29,15 @@ torch.backends.cudnn.deterministic=True
 
 #losses
 criterion_depth = Total_loss()
-criterion_ueff=SILogLoss()
-criterion_bins=BinsChamferLoss() if args.w_chamfer>0 else None
-criterion_minmax=MinmaxLoss() if args.w_minmax>0 else None
+criterion_ueff=SILogLoss()        # 对数尺度损失，用于优化深度估计的相对误差。
+criterion_bins=BinsChamferLoss() if args.w_chamfer>0 else None #对分箱中心与真实深度分布对齐的约束损失（如果启用 w_chamfer）。
+criterion_minmax=MinmaxLoss() if args.w_minmax>0 else None     #对分箱中心的最小值和最大值的正则化损失。
 
 # dataset, dataloader
 TrainImgLoader = dataloader.getTrainingData_NYUDV2(args.batch_size, args.trainlist_path, args.root_path)
 TestImgLoader = dataloader.getTestingData_NYUDV2(1, args.testlist_path, args.root_path)
 # model, optimizer
 model = DANet(args)
-
 model = nn.DataParallel(model)
 model.cuda()
 
@@ -75,10 +75,10 @@ def train():
 
 	if args.logging:
 		tags=args.tags.split(',') if args.tags!='' else None
-		wandb.init(project=PROJECT, name=name, config=args, dir=args.checkpoint_dir, tags=tags, notes=args.notes)
+		wandb.init(project=PROJECT, name=name, config=args, dir=args.checkpoint_dir, tags=tags, notes=args.notes,mode="offline")
 
 	# some globals
-	iters=len(TrainImgLoader)
+	iters=len(TrainImgLoader) # 一共有iters个batch
 	step=start_epoch*iters
 	best_loss=0
 	for epoch in range(start_epoch, args.epochs):
@@ -88,13 +88,13 @@ def train():
 		if args.logging: wandb.log({"Epoch": epoch}, step=step)
 		adjust_learning_rate(optimizer, epoch, args.lr)
 		model.train()
-
+		# 每个batch进行一次参数更新
 		for i, sample in tqdm(enumerate(TrainImgLoader), desc=f"Epoch: {epoch+1}/{args.epochs}. Loop: Train",total=len(TrainImgLoader)):
 			image, depth = sample['image'], sample['depth']
 
 			depth = depth.cuda()
 			image = image.cuda()
-			optimizer.zero_grad()
+			optimizer.zero_grad() # 梯度清零
 
 			bin_edges,pred_depth = model(image)
 
@@ -112,8 +112,8 @@ def train():
 				l_minmax=torch.Tensor([0]).to(image.device)
 
 			loss=l_dense+args.w_chamfer*l_chamfer+args.w_minmax*l_minmax
-			loss.backward()
-			optimizer.step()
+			loss.backward()	 # 反向传播
+			optimizer.step() # 更新参数
 
 			if args.logging and step%5==0:
 				wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
@@ -125,7 +125,7 @@ def train():
 
 			if step%args.validate_every==0:
 				################################# Validation loop ##################################################
-				model.eval()
+				model.eval() # 模型暂时切换到评估模式
 				metrics=validate(args, model, TestImgLoader, epoch, args.epochs)
 
 				print("Validated: {}".format(metrics))
@@ -138,7 +138,7 @@ def train():
 					model_io.save_checkpoint(model, optimizer, epoch,step, f"{experiment_name}_{run_id}_best.pt",
 											 root=os.path.join(args.checkpoint_dir, "checkpoints"))
 					best_loss=metrics['a1']
-				model.train()
+				model.train() # 评估完成后再切换回训练模式 
 			#################################################################################################
 		# if epoch>=5:
 		# 	model_io.save_checkpoint(model, optimizer, epoch, step, f"{epoch}.pt",

@@ -45,12 +45,13 @@ def build_optimizer(model,
 										)
 	elif optimizer_name == 'adam':
 		print("Using Adam optimizer.")
-
+		# 通过优化器的参数分组功能，为模型的不同部分设置不同的学习率，适配各部分的训练需求。
 		Encoder=list(map(id, model.module.feature_extraction.parameters()))
 		base_params=filter(lambda p: id(p) not in Encoder, model.module.parameters())
-		optimizer = torch.optim.Adam([{'params': base_params},
-									  {'params': model.module.feature_extraction.parameters(), 'lr':learning_rate*0.1}],
-									 lr = learning_rate, weight_decay=weight_decay)
+		optimizer = torch.optim.Adam([{'params': base_params}, ## 模型除backbone外其他部分的参数，使用全局学习率
+									  {'params': model.module.feature_extraction.parameters(), 'lr':learning_rate*0.1}],# 特征提取模块，使用降低的学习率
+									 lr = learning_rate, weight_decay=weight_decay) #全局学习率learning_rate
+		
 
 	return optimizer
 

@@ -1,7 +1,7 @@
 import os
 
 import torch
-
+import torch.nn as nn
 
 def save_weights(model, filename, path="./saved_models"):
     if not os.path.isdir(path):
@@ -17,6 +17,7 @@ def save_checkpoint(model, optimizer, epoch,step, filename, root="./checkpoints"
         os.makedirs(root)
 
     fpath = os.path.join(root, filename)
+ 
     torch.save(
         {
             "model": model.state_dict(),

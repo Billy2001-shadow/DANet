@@ -2,3 +2,6 @@
 /weights/
 /pretrained/
 */__pycache__/
+/data/
+/results/
+/data_back/

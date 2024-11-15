@@ -27,12 +27,12 @@ class DANet(nn.Module):
 		self.conv_out=nn.Sequential(nn.Conv2d(16, 256, kernel_size=1, stride=1, padding=0))
 
 	def forward(self, x):
-		feature_pyramid=self.feature_extraction(x)
-		bin_widths_normed, feature_PST=self.adaptive_bins_layer(feature_pyramid[-1])
+		feature_pyramid=self.feature_extraction(x) #这里的x是image_tensor torch.Size([1, 3, 228, 304])
+		bin_widths_normed, feature_PST=self.adaptive_bins_layer(feature_pyramid[-1]) # bin_widths_normed torch.Size([1, 256])
 
-		feature_pyramid[-1]=feature_PST
+		feature_pyramid[-1]=feature_PST  # feature_PST torch.Size([1, 320, 8, 10])
 		multiscale_depth=self.decoder(feature_pyramid)
-		range_attention_maps=F.interpolate(multiscale_depth[-1], scale_factor=2, mode='bilinear',align_corners=True)
+		range_attention_maps=F.interpolate(multiscale_depth[-1], scale_factor=2, mode='bilinear',align_corners=True) # multiscale_depth[-1]=torch.Size([1, 16, 114, 152])
 		out=self.conv_out(range_attention_maps)
 		out=F.softmax(out, dim=1)  # softmax
 		bin_widths=(self.max_depth-self.min_depth)*bin_widths_normed  # .shape = N, dim_out

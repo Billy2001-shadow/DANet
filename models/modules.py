@@ -132,7 +132,7 @@ class Decoder(nn.Module):
         scale5_size=[feature_pyramid[4].size(2), feature_pyramid[4].size(3)]
 
         # scale5
-        scale5_depth=self.conv(feature_pyramid[4])
+        scale5_depth=self.conv(feature_pyramid[4]) # feature_pyramid[4]=torch.Size([1, 320, 8, 10])
         # scale4
         scale4_res=self.conv4(feature_pyramid[3])
         scale5_upx2=F.interpolate(scale5_depth, size=scale4_size,mode='bilinear', align_corners=True)

@@ -10,7 +10,8 @@ from PIL import Image
 def _get_test_opt():
     parser = argparse.ArgumentParser(description = 'Evaluate performance of DANet')
     parser.add_argument('--backbone', default='EfficientNet', help='select a network as backbone')
-    parser.add_argument('--loadckpt', default='/home/chenwu/DANet/weights/NYUD.pt',required=False, help="the path of the loaded model")
+    # parser.add_argument('--loadckpt', default='/home/chenwu/DANet/weights/NYUD.pt',required=False, help="the path of the loaded model")
+    parser.add_argument('--loadckpt', default='/home/chenwu/DANet/results/EfficientNet+bs=16+seed=12/checkpoints/EfficientNet+bs=16+seed=12_nodebs16-tep10-lr0.0002_best.pt',required=False, help="the path of the loaded model")
     parser.add_argument('--threshold', type=float, default=1.0, help="threshold of the pixels on edges")
     parser.add_argument('--pretrained_dir', type=str,default='./pretrained', required=False, help="the path of pretrained models")
     parser.add_argument('--max_depth', type=float, help='maximum depth in estimation', default=10)
@@ -111,10 +112,10 @@ def visualization(depth: np.ndarray, orig_h: int, orig_w: int, orig_imgpath: str
 
 if __name__ == '__main__':
 
-    os.environ['CUDA_VISIBLE_DEVICES']='1'
+    os.environ['CUDA_VISIBLE_DEVICES']='0'
 
     # 指定输入图像路径和输出深度图路径
-    images_path = '/home/chenwu/DANet/test_images/250.png'
+    images_path = '/home/chenwu/DANet/test_images/885.png'
     output_path = '/home/chenwu/DANet/test_results'
 
     # 1.获取参数
@@ -132,8 +133,11 @@ if __name__ == '__main__':
     
 
     with torch.no_grad():
-        bin,output= model(image_tensor)
-        depth_map = postprocess_torch(output)
-        visualization(depth_map, 480, 640, images_path)
+        bin,output= model(image_tensor) # output = torch.Size([1, 1, 228, 304])  bin torch.Size([1, 257])
+        print(type(bin))
+        # depth_map = postprocess_torch(output)
+        # visualization(depth_map, 480, 640, images_path)
         
 
+# image_tensor torch.Size([1, 3, 228, 304])
+# 

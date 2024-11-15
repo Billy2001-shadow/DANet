@@ -95,19 +95,21 @@ class SILogLoss(nn.Module):  # Main loss function used in AdaBins paper
 	def forward(self, output,depth_gt):
 		losses=[]
 		for i in range(len(output)):
+			# 深度图中可能包含无效的像素值,需要忽略这些像素。
 			mask_pred = output[i]>0.01
 			mask_gt=depth_gt[i]>0.01
-			mask=torch.logical_and(mask_pred,mask_gt)
+			mask=torch.logical_and(mask_pred,mask_gt) # 通过逻辑与操作得到有效像素掩码 mask,即可以进行loss计算的像素掩码
 			input = output[i][mask]
 			target = depth_gt[i][mask]
 			# mask=depth_gt[i]>0.01
 			# input = output[i][mask]
 			# target = depth_gt[i][mask]
-			g = torch.log(input+0.1) - torch.log(target+0.1)
+			g = torch.log(input+0.1) - torch.log(target+0.1) #  深度值通过对数变换，缩小远近深度值之间的动态范围差异。(增加 0.1 是为了避免对数变换中的数值不稳定性（如对零求对数）)
 			# n, c, h, w = g.shape
 			# norm = 1/(h*w)
 			# Dg = norm * torch.sum(g**2) - (0.85/(norm**2)) * (torch.sum(g))**2
-			Dg = torch.var(g) + 0.15 * torch.pow(torch.mean(g), 2)
+			# 将方差和均值平方和结合，综合度量深度误差的随机性和偏移性。
+			Dg = torch.var(g) + 0.15 * torch.pow(torch.mean(g), 2) # var(g)度量深度误差的整体分布，关注误差的离散程度,优化方差var(g)，可以减少深度误差的随机波动. 
 			losses.append(self.alpha * torch.sqrt(Dg))
 		total_loss=sum(losses)
 		return total_loss
