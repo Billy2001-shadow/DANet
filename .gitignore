@@ -1,3 +1,4 @@
+/nyu_test/
 /pytorch3d-0.6.1/
 /weights/
 /pretrained/
@@ -6,3 +7,4 @@
 /results/
 /data_back/
 *.bin
+/error_images/

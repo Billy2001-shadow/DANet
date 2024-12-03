@@ -9,9 +9,9 @@ from PIL import Image
 
 def _get_test_opt():
     parser = argparse.ArgumentParser(description = 'Evaluate performance of DANet')
-    parser.add_argument('--backbone', default='EfficientNet', help='select a network as backbone')
+    parser.add_argument('--backbone', default='MobileNetV4', help='select a network as backbone')
     # parser.add_argument('--loadckpt', default='/home/chenwu/DANet/weights/NYUD.pt',required=False, help="the path of the loaded model")
-    parser.add_argument('--loadckpt', default='/home/chenwu/DANet/results/EfficientNet+bs=16+seed=12/checkpoints/EfficientNet+bs=16+seed=12_nodebs16-tep10-lr0.0002_best.pt',required=False, help="the path of the loaded model")
+    parser.add_argument('--loadckpt', default='./results/MobileNetV4+bs=24/checkpoints/MobileNetV4+bs=24_nodebs24-tep20-lr0.0002_best.pt',required=False, help="the path of the loaded model")
     parser.add_argument('--threshold', type=float, default=1.0, help="threshold of the pixels on edges")
     parser.add_argument('--pretrained_dir', type=str,default='./pretrained', required=False, help="the path of pretrained models")
     parser.add_argument('--max_depth', type=float, help='maximum depth in estimation', default=10)
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     # 1.获取参数
     args = _get_test_opt()
     # 2.加载数据(并通过数据增强)
-    image_tensor = preprocess_torch(images_path)
+    # image_tensor = preprocess_torch(images_path)
     # 3.加载模型
     model = DANet(args)
     model = torch.nn.DataParallel(model)
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     state_dict=torch.load(args.loadckpt)["model"]
     model.load_state_dict(state_dict)
     
-
+    image_tensor = torch.randn(1, 3, 424, 564).cuda()
     with torch.no_grad():
         bin,output= model(image_tensor) # output = torch.Size([1, 1, 228, 304])  bin torch.Size([1, 257])
         print(type(bin))

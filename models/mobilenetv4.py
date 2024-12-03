@@ -6,15 +6,20 @@ class MobileNetV4(nn.Module):
     def __init__(self):
         super(MobileNetV4, self).__init__()
 
+      
         # 加载MobileNetV4模型，不包括分类头
         print('Loading MobileNetV4 base model...')
-        # basemodel_name = 'mobilenetv4_conv_small.e2400_r224_in1k'
-        basemodel_name = 'mobilenetv4_conv_medium.e500_r256_in1k'
+        basemodel_name = 'mobilenetv4_conv_small.e2400_r224_in1k'
+        # basemodel_name = 'mobilenetv4_conv_medium.e500_r256_in1k'
+        # basemodel_name = 'mobilenetv4_conv_large.e500_r256_in1k'
+
         # 加载预训练的MobileNetV4模型
         basemodel = timm.create_model(basemodel_name, pretrained=False, features_only=True)
         # 离线加载权重文件，忽略分类头部分
-        # pretrained_weights = torch.load('/home/chenwu/DANet/pytorch_model.bin')
-        pretrained_weights = torch.load('/home/chenwu/DANet/mobilenetv4_conv_medium.e500_r256_in1k.bin')
+        pretrained_weights = torch.load('/home/chenwu/DANet/mobilenetv4_conv_small.e2400_r224_in1k.bin')
+        # pretrained_weights = torch.load('/home/chenwu/DANet/mobilenetv4_conv_medium.e500_r256_in1k.bin')
+        # pretrained_weights = torch.load('/home/chenwu/DANet/mobilenetv4_conv_large.e500_r256_in1k.bin')
+
 
         # 移除 head 层的键
         for key in list(pretrained_weights.keys()):

@@ -14,9 +14,9 @@ class DANet(nn.Module):
 			block_channel = [16, 24, 32, 96, 320]
 
 		if args.backbone in ["MobileNetV4"]:
-			# block_channel = [32, 32, 64, 96, 960]  # small
-			block_channel = [32, 48, 80, 160, 960]    # medium
-
+			block_channel = [32, 32, 64, 96, 960]  		# small
+			# block_channel = [32, 48, 80, 160, 960]    # medium
+			# block_channel = [24, 48, 96, 192, 960]    # large
 
 		if args.backbone in ["EfficientNet"]:
 			block_channel = [16, 24, 40, 112, 320]

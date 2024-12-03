@@ -11,10 +11,10 @@ from models.net import DANet
 from dataloader import dataloader
 from models.loss import *
 PROJECT = "MDE-DANet"
-os.environ['CUDA_VISIBLE_DEVICES']='1'
+os.environ['CUDA_VISIBLE_DEVICES']='0,1'
 args = get_args('train')
-args.name=f"{args.backbone}+bs={args.batch_size}+seed={args.seed}"
-args.checkpoint_dir=os.path.join("./results",args.name)
+args.name=f"{args.backbone}+bs={args.batch_size}"
+args.checkpoint_dir=os.path.join("./results",args.name)  # 把训练的参数全写入到一个文件中保存 lr batch_size epochs等
 makedir(args.checkpoint_dir)
 
 # 确保训练过程的随机性可控，实验结果具有可复现性。
@@ -116,6 +116,7 @@ def train():
 			optimizer.step() # 更新参数
 
 			if args.logging and step%5==0:
+				wandb.log({f"Train/loss": loss.item()}, step=step)
 				wandb.log({f"Train/{criterion_ueff.name}": l_dense.item()}, step=step)
 				if args.w_chamfer>0:
 					wandb.log({f"Train/{criterion_bins.name}": l_chamfer.item()}, step=step)
@@ -124,6 +125,7 @@ def train():
 			step+=1
 
 			if step%args.validate_every==0:
+				# print(f"Step {step}, Loss: {loss.item()}") # 输出当前训练集的损失
 				################################# Validation loop ##################################################
 				model.eval() # 模型暂时切换到评估模式
 				metrics=validate(args, model, TestImgLoader, epoch, args.epochs)
@@ -152,8 +154,9 @@ def validate(args, model, test_loader, epoch, epochs):
 
 			depth = depth.squeeze().unsqueeze(0).unsqueeze(0)
 			bin_edges,output = model(img)
-			pred = nn.functional.interpolate(output[-1], depth.shape[-2:], mode='bilinear', align_corners=True)
+			pred = nn.functional.interpolate(output[-1], depth.shape[-2:], mode='nearest') #  bilinear , align_corners=True
 			pred = pred.squeeze().cpu().numpy()
+			# 对预测出来的值进行后处理
 			pred[pred < args.min_depth] = args.min_depth
 			pred[pred > args.max_depth] = args.max_depth
 			pred[np.isinf(pred)] = args.max_depth

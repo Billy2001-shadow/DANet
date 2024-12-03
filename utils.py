@@ -49,7 +49,7 @@ def build_optimizer(model,
 		Encoder=list(map(id, model.module.feature_extraction.parameters()))
 		base_params=filter(lambda p: id(p) not in Encoder, model.module.parameters())
 		optimizer = torch.optim.Adam([{'params': base_params}, ## 模型除backbone外其他部分的参数，使用全局学习率
-									  {'params': model.module.feature_extraction.parameters(), 'lr':learning_rate*0.1}],# 特征提取模块，使用降低的学习率
+									  {'params': model.module.feature_extraction.parameters(), 'lr':learning_rate*1.0}],# 特征提取模块，使用降低的学习率
 									 lr = learning_rate, weight_decay=weight_decay) #全局学习率learning_rate
 		
 
@@ -158,6 +158,7 @@ def averageErrors(errorSum, N):
 	averageError['DELTA3'] = errorSum['DELTA3'] / N
 	return averageError
 
+# RunningAverage 类 负责维护一个数值的实时平均值。每次调用 append 方法时，它会更新这个平均值，并返回当前的平均值。
 class RunningAverage:
 	def __init__(self):
 		self.avg = 0

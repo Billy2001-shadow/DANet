@@ -108,7 +108,7 @@ def getTrainingData_NYUDV2(batch_size, trainlist_path, root_path):
                                                       __imagenet_stats['std'])
                                         ]))
     dataloader_training = DataLoader(transformed_training, batch_size,
-                                     shuffle=True, num_workers=20, pin_memory=False)
+                                     shuffle=True, num_workers=12, pin_memory=True)
 
     return dataloader_training
     
@@ -128,7 +128,7 @@ def getTestingData_NYUDV2(batch_size, testlist_path, root_path):
                                                      __imagenet_stats['std'])
                                        ]))
     dataloader_testing = DataLoader(transformed_testing, batch_size,
-                                    shuffle=False, num_workers=16, pin_memory=False)
+                                    shuffle=False, num_workers=12, pin_memory=True)
 
     return dataloader_testing
 def getTestingData_iBims1(batch_size=64):
@@ -144,6 +144,6 @@ def getTestingData_iBims1(batch_size=64):
                                                         __imagenet_stats['std'])
                                         ]))
     dataloader_testing = DataLoader(transformed_testing, batch_size,
-                                    shuffle=False, num_workers=0, pin_memory=False)
+                                    shuffle=False, num_workers=0, pin_memory=True)
 
     return dataloader_testing
